@@ -111,11 +111,9 @@ Work this as a matrix — anchors down, operators across — and draft candidate
 anything final. Most cells are empty or absurd; that is expected. Keep the one strongest
 surviving candidate per lens.
 
-Two priorities, from failure data rather than intuition: **walk the error paths first** — the
-overwhelming majority of catastrophic production failures come from mishandling errors the
-software already signalled, and most are reachable in three or fewer events — and **hunt
-absence as hard as presence**, because missing elements outnumber flawed present ones about
-two to one in real architecture reviews.
+Two priorities, in this order: **walk the error paths first** (most catastrophic production
+failures come from mishandling errors the software already signalled), then **hunt absence as
+hard as presence** (missing elements outnumber flawed present ones about two to one).
 
 ### 4. Cull
 
@@ -141,9 +139,8 @@ distrust the whole list.
 burned → annoyance. Worst first.
 
 **Attach no probability at all** — neither percentages nor words like *likely* or *long-shot*.
-Estimated likelihoods do not track real incident rates, and composite risk scores
-(severity × likelihood × detectability) are mathematically broken. If likelihood matters for a
-branch, it belongs in the **Early signal** field as something observable, not as a guess.
+Guessed likelihoods do not track real incident rates. If likelihood matters for a branch, it
+belongs in **Early signal** as something observable, not as a guess.
 
 You are biased toward predicting that an asked-about plan succeeds. Correct for it in the
 **search**, not in the verdict: if every branch came out benign, you probably picked scenery
@@ -281,9 +278,8 @@ logically *less* likely, so a branch that reads like a short story is a warning 
 Note what the second Anchor carries: an absence claim cites **the search that came back empty**,
 not a bare directory name. "There is no X here" is only checkable if you show how you looked.
 
-## What this skill promises
+## If the user asks how accurate this is
 
-Wider coverage of concrete failure causes, and a nudge toward designs that keep options open.
-Not prediction. Scenario methods reliably change what people *decide* — measurably shifting
-choices toward flexible, reversible designs — while not improving forecast accuracy at all.
-Say that plainly if the user asks how accurate this is.
+Say plainly: this is not prediction. It widens coverage of concrete failure causes and nudges
+toward reversible designs. Scenario methods measurably change what people decide; they do not
+improve forecast accuracy.
