@@ -2,9 +2,10 @@
 
 **Your code works on your machine. WHAT-IF shows you the week it stops working.**
 
-A skill for AI coding assistants. It reads your actual plan and code, then unrolls N branches
-of your project's near future — each one anchored to a real file, each one ending in a fix you
-can apply today.
+A skill for Claude Code. It reads your actual plan and code, then unrolls N branches of your
+project's near future — each one anchored to something it verified while you waited (a line it
+re-read, a plan item, a search that came back empty), each one ending in a fix you can apply
+today. It reports; it never edits your code.
 
 It is the thing an experienced engineer does silently and a new developer cannot do yet:
 run the plan forward and notice what breaks.
@@ -52,8 +53,12 @@ Three buckets at the end: **fix now** (one or two things, never a wall), **write
 
 ```bash
 git clone https://github.com/mdiyorl/what-if
+mkdir -p ~/.claude/skills
 cp -r what-if/skills/what-if ~/.claude/skills/
 ```
+
+(Without `mkdir -p`, `cp` on a machine with no `~/.claude/skills` directory yet will quietly
+copy the folder *as* `skills`, and the skill will never load.)
 
 That is the whole thing. `SKILL.md` is the product; there is no runtime, no dependency, and
 nothing to configure.
@@ -79,7 +84,13 @@ changes:
 
 ## Why it works this way
 
-Every design decision here comes from measured results rather than intuition. The short
+Every design decision here starts from a measured result rather than intuition. One caveat
+first, because it matters: **none of these studies involved a language model.** They measured
+people — clinicians enumerating hazards, engineers reviewing architectures, teams estimating
+projects. Carrying their findings over to an AI assistant reading your repo is an
+extrapolation, and it is mine, not theirs. What the research does establish is that structure
+beats free association, that different lenses find different things, and that displayed lists
+get mistaken for complete ones. Those failure modes are not species-specific. The short
 version:
 
 **Structured questioning beats free brainstorming.** In a direct controlled comparison, a
@@ -110,11 +121,12 @@ migration path, no auth check — outnumbered risks in what was actually built r
 one.
 <sub>Bass, Nord, Wood & Zubrow, *CMU/SEI-2006-TR-012*</sub>
 
-**Anchored in your repo, not in general lore.** Defect models trained on a project's own
-history put ~83% of the next release's faults in the top 20% of files; the same models
-transferred across projects succeeded in 3.4% of 622 attempts. Generic "risky code" advice
-does not travel — yours does.
-<sub>Ostrand, Weyuker & Bell 2005; Zimmermann et al. 2009</sub>
+**Anchored in your repo, because an anchor is checkable and a generality is not.** "Add
+caching" cannot be verified or falsified by reading your code; "`dashboard/page.tsx:40` calls
+`getUser()` inside a `.map()`" can be, in five seconds, by you. That is the whole argument —
+no study required. Where your own history *is* useful: files that changed recently and broke
+before are where the next faults cluster, which is why step 1 reads the git log.
+<sub>Ostrand, Weyuker & Bell 2005, on within-project defect history</sub>
 
 **No percentages, no risk scores.** Guessed likelihoods do not track real incident rates, and
 the classic composite score (severity × occurrence × detectability) is mathematically invalid:

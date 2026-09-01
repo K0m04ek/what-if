@@ -1,6 +1,7 @@
 ---
 name: what-if
 description: Use when the user asks for a risk scan of a whole plan, changeset, or feature before committing to it - "what am I missing", "what could go wrong with this plan", "run a premortem", "review this before I ship", "is this plan sound". Unrolls N branches of the project's near future, each anchored to verified code or a real plan item, each ending in one concrete action. Not for narrow single-line questions like "what if I use useMemo here".
+allowed-tools: Read, Grep, Glob, Write, Bash(git log:*), Bash(git diff:*), Bash(git status:*), Bash(ls:*), Bash(ps:*)
 ---
 
 # WHAT-IF
@@ -10,6 +11,10 @@ before the users do.
 
 You are doing for them what an experienced engineer does automatically: mentally simulating
 the plan against future conditions.
+
+**This skill reads and reports. It never edits the project's code.** Every branch ends in an
+action the user can choose to take — never in an edit you make on your own initiative. The one
+file you may write is `.what-if.md`, this skill's own log at the repo root. Nothing else.
 
 **Default N is 3**, and N is capped by the lens table below: **at most 9**. N is the number of
 *distinct lenses*, not the number of paragraphs. If the user asks for more than 9, give 9 and
@@ -27,7 +32,24 @@ project, so they inform about none.
 ### 1. Collect anchors
 
 Read before you imagine. State the scope in one sentence first — "the checkout flow", "plan
-items 1-6", "this week's diff" — and stay inside it. Depending on what exists:
+items 1-6", "this week's diff" — and stay inside it.
+
+**An anchor is anything you can point at and re-check later:** `file.ts:88`, a dependency and
+its version, a numbered plan item, a commit sha, or a running process. Code is the sharpest
+kind, but a plan with no code yet still anchors fine — that is the cheapest moment to run this.
+
+**Budget: about 8 files or 1500 lines.** Prefer the diff and the files named in the
+conversation. Stop once you have 5-6 anchors; more input does not buy more foresight.
+
+**Check whether the thing is already running** (`ps`, a dev server, a cron job, a deploy). A
+scanner that is live right now and a repo sitting idle need different advice, and a fix that
+requires a restart may be impossible after a certain moment. Say which case you are in.
+
+**If `.what-if.md` exists in the repo root, read it first** and skip anchors the user already
+chose to ignore, unless something about them changed. Repeating last week's dismissed branches
+is how this skill gets uninstalled.
+
+Depending on what exists:
 
 - the plan, spec, or TODO under discussion
 - `git log --oneline -15` and the diff — what changed recently is where faults cluster
@@ -46,8 +68,14 @@ sharpen the next run. Never come back empty-handed with only a request for more 
 ### 2. Fix what stays constant
 
 Name the predetermined elements — facts true in *every* branch: the chosen stack, current
-architecture, committed dependencies, the deadline, existing tech debt. Branches must differ
-in what is genuinely uncertain, not in scenery.
+architecture, committed dependencies, the deadline, existing tech debt.
+
+**Print them as one line above the branches:**
+
+> **Constant in every branch:** Next.js 15, Supabase free tier, solo developer, ship by the 14th.
+
+Then use that line in step 4: a branch that only varies something on it is scenery, not a
+branch, and gets deleted. Branches must differ in what is genuinely uncertain.
 
 ### 3. Generate one branch per lens
 
@@ -122,6 +150,11 @@ manufacturing doom for a 200-line weekend project is not.
 Past tense. It already happened. This framing — not hedged "this could fail if" language —
 is what makes the causes concrete and deflates overconfidence.
 
+**Do not invent a date or a duration in the headline.** "Three weeks in" is an unearned claim
+about both timing and likelihood, sitting in the position the reader trusts most. Name the
+failure instead. Time belongs in a headline only when it comes from a real anchor — a trial
+that ends on the 14th, a certificate expiring, a rate limit that resets hourly.
+
 ```
 ### The same order was charged twice
 
@@ -156,6 +189,15 @@ Then, always:
 That line is required. When a list of failure causes is displayed, people treat it as the
 complete set and stop looking — and expertise does not protect against this. Saying it out
 loud is the only correction.
+
+**Then hand over the next move.** A report that ends at reading is a report nobody acts on, so
+give each *fix now* item a line the user can say back verbatim:
+
+> Say `fix the double-submit in checkout.ts:88` and I'll do it.
+
+**Finally, append the run to `.what-if.md`** in the repo root (one dated section: the three
+buckets, one line each). That file is what stops the next run from repeating what this user
+already decided to ignore. Mention it once, in a single line, and do not paste its contents.
 
 ## Anti-sycophancy
 
