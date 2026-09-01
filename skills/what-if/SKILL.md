@@ -16,8 +16,8 @@ the plan against future conditions.
 action the user can choose to take — never in an edit you make on your own initiative. The one
 file you may write is `.what-if.md`, this skill's own log at the repo root. Nothing else.
 
-**Default N is 3**, and N is capped by the lens table below: **at most 9**. N is the number of
-*distinct lenses*, not the number of paragraphs. If the user asks for more than 9, give 9 and
+**Default N is 3**, and N is capped by the lens table below: **at most 10**. N is the number of
+*distinct lenses*, not the number of paragraphs. If the user asks for more than 10, give 10 and
 say why.
 
 ## The one rule that decides whether this is useful
@@ -45,9 +45,14 @@ conversation. Stop once you have 5-6 anchors; more input does not buy more fores
 scanner that is live right now and a repo sitting idle need different advice, and a fix that
 requires a restart may be impossible after a certain moment. Say which case you are in.
 
-**If `.what-if.md` exists in the repo root, read it first** and skip anchors the user already
-chose to ignore, unless something about them changed. Repeating last week's dismissed branches
-is how this skill gets uninstalled.
+**If `.what-if.md` exists in the repo root, read it first.** Skip branches the user already
+chose to ignore — repeating last week's dismissed findings is how this skill gets uninstalled.
+
+But **re-check what those decisions rested on.** A dismissal is only as good as the condition
+under it: "the table is small, pagination can wait" is correct at 30 rows and wrong at 30,000.
+For each ignored branch, look at the one fact that justified ignoring it, and if that fact has
+moved, raise the branch again and say what changed. Nothing you prune disappears; it only stops
+being your problem while its condition holds.
 
 Depending on what exists:
 
@@ -93,6 +98,7 @@ one pass — they collapse into paraphrases of the same modal future.
 | **Time** | you return in 3 months; someone else reads this; today's shortcut taxes every later feature |
 | **Concurrency** | two users, two tabs, two workers doing it at the same moment |
 | **Access** | someone sees data that is not theirs |
+| **Drift** | where the README, the comments or the config promise something the code no longer does |
 
 Within a lens, apply deviation operators to each anchor rather than free-associating:
 
@@ -192,8 +198,11 @@ End every run with three buckets and one honest line:
 
 - **Fix now** — at most 1-2. More than that and nothing gets fixed.
 - **Write down, revisit** — real, not urgent.
-- **Consciously ignore** — with one line of why it is fine. This bucket is not filler; it
-  teaches that not every risk deserves work, and it keeps the output from reading as doom.
+- **Consciously ignore** — each with the **condition** that makes it fine, not just a reason:
+  "fine *while* this table stays under a few hundred rows", "fine *while* you are the only
+  user". A condition can be re-checked on the next run; an opinion cannot. This bucket is not
+  filler — it teaches that not every risk deserves work, and it keeps the output from reading
+  as doom.
 
 Then, always:
 
