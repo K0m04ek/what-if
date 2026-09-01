@@ -18,16 +18,21 @@ run the plan forward and notice what breaks.
 ```
 
 ```
-### Three weeks in: the same order was charged twice
+### The same order was charged twice
 
-Anchor        checkout.ts:88 — no guard against a second submit
-How           Two requests left before the first response returned, so two rows
-              were written and the card was charged twice.
-Cost          Customer's money, a manual refund, a support conversation.
-Early signal  Orders table shows pairs with near-identical timestamps.
-Fix now       Disable the button until the response lands, and send an
-              idempotency key with the request.
+Anchor            checkout.ts:88 — <button onClick={submit}> with no disabled state
+Lens / Deviation  Human behavior / AS WELL AS
+How               Two requests left before the first response returned, so two rows
+                  were written and the card was charged twice.
+Cost              Customer's money, a manual refund, a support conversation.
+Early signal      Orders table shows pairs with near-identical timestamps.
+Action            Disable the button until the response lands, and send an
+                  idempotency key with the request.
 ```
+
+That `Lens / Deviation` line is the point. It says the branch came from walking a fixed set of
+deviation operators across a real anchor — not from a language model free-associating about
+what usually goes wrong. You can audit the coverage; with a story you cannot.
 
 Three buckets at the end: **fix now** (one or two things, never a wall), **write down**, and
 **consciously ignore** — with a reason. Plus one honest line saying how much was *not* covered.
@@ -83,10 +88,11 @@ brainstorming. So branches come from applying a small set of deviation operators
 element of your plan — never from "imagine what could go wrong."
 <sub>Kobo-Greenhut et al., *Int. J. for Quality in Health Care*, 2019</sub>
 
-**One pass sees about a third of the picture, so lenses must differ.** Two different hazard
-methods run on the same system overlapped by only 32–37% of their findings. N branches are
-therefore N *distinct lenses* — error paths, omissions, volume, human behavior, dependencies —
-not N paragraphs from one prompt.
+**Different methods find different problems, so lenses must differ.** When two structured
+hazard methods were run over the same system on the same day, only 32–37% of their findings
+overlapped — each was mostly finding what the other missed. N branches are therefore N
+*distinct lenses* — error paths, omissions, volume, human behavior, dependencies — not N
+paragraphs from one prompt.
 <sub>Potts et al., *BMC Health Services Research*, 2014</sub>
 
 **Past tense, not conditional.** Framing an outcome as already-happened roughly doubles the
