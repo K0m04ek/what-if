@@ -122,7 +122,17 @@ A branch survives only if all four hold:
 0. **Verified in this run** — before printing any `file:line`, re-read that line *now* and
    confirm it says what you claim. A remembered line number is not an anchor. For a presence
    claim the Anchor field carries a short verbatim excerpt; for an absence claim it carries
-   the search you ran and its empty result.
+   the search you ran and its empty result. Three traps this rule exists to close, all of
+   which have been observed in practice:
+   - **Quote command output literally.** If you print what a search returned, print what it
+     actually returned. Do not reconstruct it from memory and do not append a plausible extra
+     hit — "returns only README.md *and the dependency in package.json*" is a fabrication if
+     you did not see that second line.
+   - **Never compare two files you have not both read this turn.** "`checkout.ts` has the same
+     unguarded shape" requires opening `checkout.ts` now. A filename that sounds related, or a
+     TODO comment about something else, is not evidence.
+   - **State absence only for what you searched.** "There is no rate limiting" means you ran a
+     search for it and it came back empty, not that you did not happen to see any.
 1. **Anchored** — you can point at the file, dependency, plan item, or commit.
 2. **Mechanical** — the causal chain is specific and at most 3-4 steps. "Might get slow" is
    not a mechanism. "Each row triggers a query, so 500 rows is 500 round trips" is.

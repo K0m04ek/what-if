@@ -16,3 +16,22 @@ No test framework needed — these are read-by-eye transcript checks. For each f
 - [`n-cap-at-ten.md`](n-cap-at-ten.md) — User asks for far more branches than the lens table allows: `/what-if 25`.
 - [`stale-dismissal-resurfaces.md`](stale-dismissal-resurfaces.md) — A second run on a repo that already has a `.
 - [`anchor-honesty-no-fabrication.md`](anchor-honesty-no-fabrication.md) — A checkout button that already has the double-submit guard the SKILL's own worked example uses as its canonical 'bad' case.
+
+## The check every fixture needs
+
+Each fixture below scores one behaviour. But the first real run of these fixtures taught us
+that passing all of them is not enough: a run can cap N correctly, refuse to pad correctly,
+print every required field — and still slip a fabricated detail into an `Anchor` line.
+
+So after grading any fixture, do one more pass that the fixture itself does not ask for:
+
+**Take every factual claim in the output and check it against the repo.** Re-run each grep the
+output quotes and compare the result character by character. Open every file the output names,
+including files mentioned only in passing. Any claim that survives contact with the actual
+files is real; any that does not is a defect in the skill, no matter how well the run scored
+on its own criteria.
+
+That pass is what caught the two fabrications recorded in the log for `n-cap-at-ten`: an
+invented second grep hit, and a cross-file comparison to a file that contained nothing of the
+kind. Both were bolted onto branches whose substance was otherwise correct, which is exactly
+why they are easy to miss.
