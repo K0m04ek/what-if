@@ -163,13 +163,28 @@ that ends on the 14th, a certificate expiring, a rate limit that resets hourly.
 **How** Two requests left before the first response returned, so two rows were
        written and the card was charged twice.
 **Cost** Customer's money, a manual refund, and a support conversation.
-**Early signal** Orders table shows pairs with near-identical timestamps.
+**Early signal** Orders table shows pairs with near-identical timestamps —
+       but nothing watches that table today, so nobody would see it.
+**Window** Cheap while the button is one component. After the first real
+       charge it also costs a refund and a support conversation.
 **Action** Disable the button until the response lands, and send an
        idempotency key with the request.
 ```
 
-The **Lens / Deviation** line is not decoration: it is the only way the reader can check that
-the branch came from systematic enumeration rather than from a plausible story.
+Three of these fields carry weight the others do not:
+
+**Lens / Deviation** is the only way the reader can check that the branch came from systematic
+enumeration rather than from a plausible story.
+
+**Early signal must name a watcher, not just an observable.** "Errors appear in the log" is
+worthless if nobody reads that log. Say who or what would actually notice — a person watching,
+an alert, a failing test — and **if the answer is nobody, say that**, because an unwatched
+signal is itself a finding worth more than the branch it belongs to.
+
+**Window** is when the fix is still cheap, and it is often the most actionable line in the
+whole report. Some fixes stay cheap indefinitely; others have a hard edge — a launch, a
+migration, a deploy, a process already running that a restart would disturb. Name the edge if
+one exists, and say plainly when a window is closing today.
 
 ### 7. Close the output
 
@@ -239,7 +254,8 @@ logically *less* likely, so a branch that reads like a short story is a warning 
 > **Lens / Deviation** Volume / MORE
 > **How** One query per row. At 300 orders that is 300 sequential round trips.
 > **Cost** The page feels broken; you rewrite the data layer under time pressure.
-> **Early signal** It already takes ~1s with your 30 test rows.
+> **Early signal** It already takes ~1s with your 30 test rows — visible to you, unmonitored in prod.
+> **Window** Cheap until other pages copy this query shape.
 > **Action** Fetch users once with `IN (...)`, or join in the query.
 
 **Good — an omission, which is the most common real risk:**
@@ -249,7 +265,8 @@ logically *less* likely, so a branch that reads like a short story is a warning 
 > **How** The migration ran against production, the column was gone, and nothing captured
 >       the prior state.
 > **Cost** Data loss measured in whatever was not in a backup.
-> **Early signal** None — this one gives no warning, which is why it is worth fixing today.
+> **Early signal** None, and nothing watches for it — which is why it is worth fixing today.
+> **Window** Closes the moment you run this migration against production.
 > **Action** Take a snapshot before migrating; add the reverse statement to each migration.
 
 Note what the second Anchor carries: an absence claim cites **the search that came back empty**,

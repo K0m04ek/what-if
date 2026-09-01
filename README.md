@@ -82,6 +82,38 @@ changes:
 
 ---
 
+## The mental model
+
+If you have seen a certain show about a time-variance bureaucracy, you already know how this
+works, and the vocabulary is worth borrowing because it is genuinely accurate:
+
+**Your plan is the sacred timeline** — the single future where everything goes as intended,
+which is the only future most of us ever picture.
+
+**A branch starts at a nexus point.** Somewhere specific, something deviates: a call returns
+an error nobody handled, a user clicks twice, a table grows a hundredfold. That point has an
+address in your repo, and the skill has to show it to you — that is the `Anchor` line. No
+address, no branch.
+
+**Deviation operators are how branches are found, not imagined.** Eight of them — nothing,
+more, less, extra, partial, reversed, wrong-thing, too-early-or-late — get walked across every
+anchor. The `Lens / Deviation` line on each branch tells you which one produced it, so you can
+check the coverage instead of trusting a story.
+
+**Then most branches get pruned.** A branch that cannot be traced to a real line, or whose
+mechanism takes more than a few steps to explain, gets cut rather than reworded. What survives
+is a small number of futures that actually reach from here.
+
+**And what you deliberately keep, you keep on purpose.** The third bucket — *consciously
+ignore* — exists because pruning everything risky is not a strategy either. Some branches you
+look at, understand, and decide to live with. Those get written down with a reason, so the next
+run does not re-litigate them.
+
+The one place the metaphor stops: nothing here monitors you, and the skill has no authority
+over your choices. It reports, you decide.
+
+---
+
 ## Why it works this way
 
 Every design decision here starts from a measured result rather than intuition. One caveat
