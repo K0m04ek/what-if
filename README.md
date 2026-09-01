@@ -38,6 +38,13 @@ That `Lens / Deviation` line is the point. It says the branch came from walking 
 deviation operators across a real anchor — not from a language model free-associating about
 what usually goes wrong. You can audit the coverage; with a story you cannot.
 
+**Trust the excerpt, glance at the line number.** Running this skill's own eval fixtures turned
+up a consistent pattern: the quoted code and the mechanism hold up, while line numbers drift by
+a few — `stats.py:24` for something that lives on line 16, a five-line block labelled as three.
+Precise counting is a known weak spot for language models, and one round of stricter rules
+changed which form the slips took rather than eliminating them. So the excerpt is the evidence
+and the number is a signpost. If they disagree, the excerpt is right.
+
 Three buckets at the end: **fix now** (one or two things, never a wall), **write down**, and
 **consciously ignore** — with a reason. Plus one honest line saying how much was *not* covered.
 

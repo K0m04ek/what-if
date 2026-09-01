@@ -119,29 +119,35 @@ hard as presence** (missing elements outnumber flawed present ones about two to 
 
 A branch survives only if all four hold:
 
-0. **Verified in this run** — before printing any `file:line`, re-read that line *now* and
-   confirm it says what you claim. A remembered line number is not an anchor. For a presence
-   claim the Anchor field carries a short verbatim excerpt; for an absence claim it carries
-   the search you ran and its empty result. Three traps this rule exists to close, all of
-   which have been observed in practice:
-   - **Quote command output literally.** If you print what a search returned, print what it
-     actually returned. Do not reconstruct it from memory and do not append a plausible extra
-     hit — "returns only README.md *and the dependency in package.json*" is a fabrication if
-     you did not see that second line.
+0. **Verified in this run.** The proof is the excerpt, not the coordinate.
+   - **A presence claim needs a verbatim excerpt** — one to three lines copied from the file
+     you just read. The excerpt is what the reader checks; it is mandatory. A line number is
+     an optional convenience beside it, and if you are not certain of it, give the filename
+     and the excerpt alone. Never invent precision: a wrong number in an otherwise true branch
+     is what makes readers stop trusting the true parts.
+   - **An absence claim needs the search you ran.** "There is no rate limiting" means you ran
+     a search and it came back empty — not that you did not happen to notice any.
+   - **Quote command output literally.** Print what the command actually returned, never a
+     reconstruction. Do not append a plausible extra hit. And never report that a command
+     returned nothing unless you saw it return nothing — `ps aux | grep foo` always matches
+     its own grep process, so "returned nothing" there is false by construction.
    - **Never compare two files you have not both read this turn.** "`checkout.ts` has the same
      unguarded shape" requires opening `checkout.ts` now. A filename that sounds related, or a
-     TODO comment about something else, is not evidence.
-   - **State absence only for what you searched.** "There is no rate limiting" means you ran a
-     search for it and it came back empty, not that you did not happen to see any.
+     TODO about something else, is not evidence.
 1. **Anchored** — you can point at the file, dependency, plan item, or commit.
 2. **Mechanical** — the causal chain is specific and at most 3-4 steps. "Might get slow" is
    not a mechanism. "Each row triggers a query, so 500 rows is 500 round trips" is.
 3. **Proportionate** — plausible for *this* project at *this* stage. A 100k-user branch for a
    personal script is noise.
 
-Delete what fails. **If fewer than N survive, say so plainly** — "2 real ones; the rest would
-be padding." Never invent a branch to hit the number. A padded list teaches the user to
-distrust the whole list.
+Delete what fails. **If fewer than N survive, say so in exactly this shape:**
+
+> **Requested 5, found 2.** The rest would be padding.
+
+Two numbers, fixed roles: the first is what the user asked for, the second is what survived.
+Write them in that order and never swap them — a sentence about honesty that carries the wrong
+number undoes itself. Never invent a branch to hit the requested count; a padded list teaches
+the user to distrust the whole list.
 
 ### 5. Order honestly
 
