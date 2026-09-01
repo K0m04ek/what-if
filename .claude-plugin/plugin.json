@@ -1,0 +1,11 @@
+{
+  "name": "what-if",
+  "description": "Unrolls N branches of your project's near future, each anchored to real code, each ending in one concrete fix.",
+  "version": "0.1.0",
+  "author": {
+    "name": "mdiyorl"
+  },
+  "homepage": "https://github.com/mdiyorl/what-if",
+  "license": "MIT",
+  "keywords": ["what-if", "risk", "premortem", "planning", "review", "vibecoding"]
+}
