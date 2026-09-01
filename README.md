@@ -48,14 +48,14 @@ Three buckets at the end: **fix now** (one or two things, never a wall), **write
 **As a plugin** (updates included):
 
 ```
-/plugin marketplace add mdiyorl/what-if
+/plugin marketplace add K0m04ek/what-if
 /plugin install what-if@what-if
 ```
 
 **As a plain skill** — copy the one file:
 
 ```bash
-git clone https://github.com/mdiyorl/what-if
+git clone https://github.com/K0m04ek/what-if
 mkdir -p ~/.claude/skills
 cp -r what-if/skills/what-if ~/.claude/skills/
 ```
