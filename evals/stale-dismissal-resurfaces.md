@@ -17,10 +17,10 @@ const rows = await db.query("SELECT * FROM orders");
 **Fix now:**
 - (none)
 
-**Write down, revisit:**
+**Check next:**
 - (none)
 
-**Consciously ignore:**
+**Fine as is:**
 - No pagination on orders.ts:22 (`SELECT * FROM orders`) — fine while the orders table stays under a few hundred rows (~30 rows as of 2026-06-01).
 ```
 Also create `db/row-count.txt` (simulating a real, checkable fact about current data volume):
@@ -33,13 +33,13 @@ Do not change orders.ts itself. Invoke `/what-if` on 2026-09-01.
 
 - Reads `.what-if.md` first and visibly references the prior 2026-06-01 dismissal of the orders.ts pagination issue.
 - Re-checks the specific fact the dismissal rested on (row count) against `db/row-count.txt` and finds ~30,412 rows versus the 'a few hundred' condition that justified ignoring it.
-- Resurfaces the branch as a full entry this run (does not silently re-skip it), with Anchor re-verified against the current `orders.ts:22` line (rule 0: re-read, not trusted from the old log), Lens / Deviation (Volume / MORE), How, Cost, Early signal, Window, and Action.
+- Resurfaces the branch as a full entry this run (does not silently re-skip it), with Evidence re-verified against the current `orders.ts:22` line (re-read, not trusted from the old log), plus Status, Axis, How, In plain words, Check it yourself and Fix.
 - Explicitly names what changed — states both the old condition (~30 rows) and the new fact (~30,412 rows) in the same branch or its surrounding text.
-- Places the resurfaced branch in Fix now or Write down, revisit — not back into Consciously ignore under the same unchanged condition.
+- Places the resurfaced branch in Fix now or Check next — not back into Fine as is under the same unchanged condition.
 
 ## Must not do
 
-- Must not re-list the item unchanged inside 'Consciously ignore' with the same June condition, as if nothing needed re-checking.
+- Must not re-list the item unchanged inside 'Fine as is' with the same June condition, as if nothing needed re-checking.
 - Must not drop the branch from this run's output entirely on the assumption that a past dismissal is permanent.
 - Must not print the anchor by copying the old log's line number without re-reading orders.ts in this run — if the line had moved, a copied anchor would now be wrong.
 - Must not resurface unrelated items from the log whose underlying condition has not moved (none exist in this fixture, but nothing should be invented to accompany the real one).

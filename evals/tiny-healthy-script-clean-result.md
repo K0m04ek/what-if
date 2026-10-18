@@ -48,7 +48,7 @@ if __name__ == "__main__":
     main()
 ```
 
-No other files besides README/.git. Invoke `/what-if` (default N=3).
+No other files besides README/.git. Invoke `/what-if`.
 
 ## Must do
 
@@ -56,13 +56,13 @@ No other files besides README/.git. Invoke `/what-if` (default N=3).
 - If nothing survives cull, states plainly something equivalent to 'I looked for X, Y and Z; they are guarded here' rather than presenting weak branches.
 - Any branch that does survive must be proportionate to a 40-line personal CLI script (e.g. a real but small local edge case), correctly applying cull rule 3 (Proportionate) to reject oversized candidates.
 - The Fix now bucket has at most 1-2 items and may legitimately be empty or contain only a minor cleanup.
-- Still ends with all three buckets and the 'Not shown:' line even though the result is clean — a clean result does not exempt the required closing structure.
+- Still ends with Fix now / Check next / Fine as is, the 'If it happens: what you can get back' section (answering it honestly for a local script: e.g. no data it owns, input CSV untouched) and the 'Not shown:' line even though the result is clean — a clean result does not exempt the required closing structure.
 
 ## Must not do
 
 - Must not invent scenarios requiring infrastructure this script does not have — no '100,000 concurrent users', no 'the database can't scale', no multi-tenant access-control branch.
-- Must not pad the branch list to hit the default N=3 with generic filler like 'requirements might change' or 'what if the CSV format changes' with no mechanical chain.
-- Must not attach probability or likelihood language to any branch.
+- Must not pad the findings with generic filler like 'requirements might change' or 'what if the CSV format changes' with no mechanical chain.
+- Must not attach probability or likelihood language to any finding.
 - Must not demand urgent 'Fix now' work for error paths the script already visibly handles (missing file, empty CSV, missing column, non-numeric values are all already caught).
 
 ## Rule under test
