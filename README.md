@@ -1,58 +1,95 @@
 # WHAT-IF
 
-**Your code works on your machine. WHAT-IF shows you the week it stops working.**
+**Before your AI agent gets production access: what could it delete, expose or spend — and what could you get back?**
 
-A skill for Claude Code. It reads your actual plan and code, then unrolls N branches of your
-project's near future — each one anchored to something it verified while you waited (a line it
-re-read, a plan item, a search that came back empty), each one ending in a fix you can apply
-today. It reports; it never edits your code.
+A skill for Claude Code. It reads your actual repo — agent instructions, credentials, migrations
+and grants, policies, paid-API calls, webhooks, backup scripts — and answers four questions about
+*this* project:
 
-It is the thing an experienced engineer does silently and a new developer cannot do yet:
-run the plan forward and notice what breaks.
+1. **Delete** — what data could be destroyed, and by whom?
+2. **Expose** — who could read or change data that is not theirs?
+3. **Spend** — what could run up a bill, or move money wrongly?
+4. **Recover** — when one of those happens, what can actually be restored?
+
+Every finding is traced through the lines it re-read, says in one sentence what it means for a
+person who never opened a terminal, and gives one step to confirm it yourself. It reports; it
+never edits your code.
 
 ---
 
 ## What it looks like
 
 ```
-> /what-if 3
+> /what-if
 ```
 
 ```
-### The same order was charged twice
+### The "read-only" agent deleted a customer
 
-Anchor            checkout.ts:88 — <button onClick={submit}> with no disabled state
-Lens / Deviation  Human behavior / AS WELL AS
-How               Two requests left before the first response returned, so two rows
-                  were written and the card was charged twice.
-Cost              Customer's money, a manual refund, a support conversation.
-Early signal      Orders table shows pairs with near-identical timestamps —
-                  but nothing watches that table today, so nobody would see it.
-Window            Cheap while the button is one component. After the first real
-                  charge it also costs a refund and a support conversation.
-Action            Disable the button until the response lands, and send an
-                  idempotency key with the request.
+Status             Confirmed
+Axis               Delete
+Evidence           CLAUDE.md — "the agent role is read-only"
+                   migrations/007_ops.sql — `grant ops_writer to support_bot;`
+                   migrations/002_roles.sql — `grant select, insert, update, delete … to ops_writer;`
+How                A later migration quietly gave the agent's role a writer role.
+In plain words     The note says your assistant can only look; the database lets it delete.
+Check it yourself  Search the migrations for `to support_bot` — every line is a permission it holds.
+Fix                Revoke ops_writer from support_bot; give the agent a role with SELECT only.
 ```
 
-That `Lens / Deviation` line is the point. It says the branch came from walking a fixed set of
-deviation operators across a real anchor — not from a language model free-associating about
-what usually goes wrong. You can audit the coverage; with a story you cannot.
+```
+## If it happens: what you can get back
+Database     — nightly dump, but `--schema-only`: it contains no rows
+Code         — no git remote: only on this machine
+Money/keys   — keys rotate in the dashboard; no spend alert set
+Weakest link — the backup has no data, so a delete is permanent
+Check it yourself — open the latest dump: if there are no INSERT/COPY lines, there is nothing to restore
+```
 
-**Trust the excerpt, glance at the line number.** Running this skill's own eval fixtures turned
-up a consistent pattern: the quoted code and the mechanism hold up, while line numbers drift by
-a few — `stats.py:24` for something that lives on line 16, a five-line block labelled as three.
-Precise counting is a known weak spot for language models, and one round of stricter rules
-changed which form the slips took rather than eliminating them. So the excerpt is the evidence
-and the number is a signpost. If they disagree, the excerpt is right.
+Findings are labelled **Confirmed** (every step is in quoted lines) or **Check** (holds only if one
+fact it cannot see is true — it names that fact). Only Confirmed items go into **Fix now**, at
+most two. A **Fine as is** list says what it looked at and found guarded, so you know which alarms
+*not* to raise.
 
-Three buckets at the end: **fix now** (one or two things, never a wall), **write down**, and
-**consciously ignore** — with a reason. Plus one honest line saying how much was *not* covered.
+There is no target count. Three confirmed findings beat eight plausible ones, and "nothing serious
+here" is a legitimate answer.
+
+---
+
+## Why not just ask Claude?
+
+We measured it. Blind, two independent judges (Claude Sonnet and Codex), hidden answer keys,
+answers normalised to one neutral format so the judges could not tell which tool wrote what.
+Four sides: this skill (v2), its previous version (v1), a plain "do a premortem" prompt, and the
+built-in `/security-review`. Eight small repos with planted delete / expose / spend / recover
+defects — four of them **holdout** repos built by a separate agent that never saw this skill.
+
+Average rank of four (lower is better), mean of the two judges:
+
+| | v1 | **v2** | plain prompt | /security-review |
+|---|---|---|---|---|
+| training repos | 3.63 | **1.75** | 2.75 | 1.88 |
+| holdout repos | 2.38 | **2.00** | 2.88 | 2.75 |
+
+- **Recovery:** v2 scored the maximum in every cell — the only side that did.
+- **Clear to a beginner:** v2 rated highest throughout.
+- **Cost:** about half of v1 per run.
+- **Honest limit:** finding the planted defects was a **tie** — a capable model finds most of them
+  with any prompt. What this skill adds is *not* more findings; it is fewer invented ones, a real
+  answer to "what can I get back", and wording a beginner can act on. One run per cell; the judges
+  disagreed about `/security-review` on the holdout set.
 
 ---
 
 ## Install
 
-**As a plugin** (updates included):
+**With the skills CLI:**
+
+```bash
+npx skills add K0m04ek/what-if
+```
+
+**As a Claude Code plugin** (updates included):
 
 ```
 /plugin marketplace add K0m04ek/what-if
@@ -70,57 +107,38 @@ cp -r what-if/skills/what-if ~/.claude/skills/
 (Without `mkdir -p`, `cp` on a machine with no `~/.claude/skills` directory yet will quietly
 copy the folder *as* `skills`, and the skill will never load.)
 
-That is the whole thing. `SKILL.md` is the product; there is no runtime, no dependency, and
-nothing to configure.
+`SKILL.md` is the product; there is no runtime, no dependency, and nothing to configure.
 
 ---
 
 ## Use it
 
 ```
-/what-if            three branches
-/what-if 5          five branches
+/what-if
 ```
 
-Works at two moments, and the procedure is the same for both — only the source of anchors
-changes:
+Best moments to run it:
 
-- **On a plan, before any code.** Cheapest time to change your mind: you edit a sentence
-  instead of a subsystem.
-- **On code that already runs.** Sharper anchors, because the failure is already sitting in
-  a specific line.
+- **before you hand an agent a production database URL or deploy rights;**
+- **before you add a database, payments or a paid API** — on the plan, before any code, is cheapest;
+- **before a launch or a big migration.**
+
+Say `fix <item>` afterwards and it makes the change **and adds a small test that fails if the bug
+comes back.** It keeps a short log in `.what-if.md`, so things you chose to ignore are not raised
+again — unless the condition you ignored them under has changed.
 
 ---
 
 ## The mental model
 
-If you have seen a certain show about a time-variance bureaucracy, you already know how this
-works, and the vocabulary is worth borrowing because it is genuinely accurate:
-
-**Your plan is the sacred timeline** — the single future where everything goes as intended,
-which is the only future most of us ever picture.
-
-**A branch starts at a nexus point.** Somewhere specific, something deviates: a call returns
-an error nobody handled, a user clicks twice, a table grows a hundredfold. That point has an
-address in your repo, and the skill has to show it to you — that is the `Anchor` line. No
-address, no branch.
-
-**Deviation operators are how branches are found, not imagined.** Eight of them — nothing,
-more, less, extra, partial, reversed, wrong-thing, too-early-or-late — get walked across every
-anchor. The `Lens / Deviation` line on each branch tells you which one produced it, so you can
-check the coverage instead of trusting a story.
-
-**Then most branches get pruned.** A branch that cannot be traced to a real line, or whose
-mechanism takes more than a few steps to explain, gets cut rather than reworded. What survives
-is a small number of futures that actually reach from here.
-
-**And what you deliberately keep, you keep on purpose.** The third bucket — *consciously
-ignore* — exists because pruning everything risky is not a strategy either. Some branches you
-look at, understand, and decide to live with. Those get written down with a reason, so the next
-run does not re-litigate them.
-
-The one place the metaphor stops: nothing here monitors you, and the skill has no authority
-over your choices. It reports, you decide.
+If you have seen a certain show about a time-variance bureaucracy, the vocabulary fits:
+**your plan is the sacred timeline** — the one future where everything goes as intended. A
+**nexus point** is a specific line where something deviates: a grant nobody noticed, a retry that
+multiplies, a backup that holds no rows. **Deviation operators** (nothing, more, extra, partial,
+reversed, wrong-thing, too-early-or-late) are how those points are found rather than imagined, and
+**pruning** is the step that throws out anything not traced to a real line — including scary
+patterns that turn out to be guarded. The metaphor stops there: nothing here monitors you. It
+reports, you decide.
 
 ---
 
@@ -144,9 +162,9 @@ from "imagine what could go wrong."
 
 **Different methods find different problems, so lenses must differ.** When two structured
 hazard methods were run over the same system on the same day, only 32–37% of their findings
-overlapped — each was mostly finding what the other missed. N branches are therefore N
-*distinct lenses* — error paths, omissions, volume, human behavior, dependencies — not N
-paragraphs from one prompt.
+overlapped — each was mostly finding what the other missed. That is why the skill walks a fixed
+set of deviation operators across each credential, policy, route and script instead of asking a
+model "what usually goes wrong" — and why its output ends with a "Not shown" line.
 <sub>Potts et al., *BMC Health Services Research*, 2014</sub>
 
 **Past tense, not conditional.** Framing an outcome as already-happened makes explanations

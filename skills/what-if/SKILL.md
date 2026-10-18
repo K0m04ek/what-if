@@ -1,301 +1,180 @@
 ---
 name: what-if
-description: Use when the user asks for a risk scan of a whole plan, changeset, or feature before committing to it - "what am I missing", "what could go wrong with this plan", "run a premortem", "review this before I ship", "is this plan sound". Unrolls N branches of the project's near future, each anchored to verified code or a real plan item, each ending in one concrete action. Not for narrow single-line questions like "what if I use useMemo here".
-allowed-tools: Read, Grep, Glob, Write, Bash(git log:*), Bash(git diff:*), Bash(git status:*), Bash(ls:*), Bash(ps:*)
+description: Use before giving an AI agent (or yourself) production access, before a deploy, or when adding a database, a paid API, payments or user data - "is it safe to give the agent prod", "what could go wrong", "is it safe to launch", "run a premortem", "review this before I ship". Answers what could get DELETED, EXPOSED or SPENT - and what you could RECOVER - each finding traced to code it re-read, each ending in one step a beginner can take. Not for narrow single-line questions like "what if I use useMemo here".
+allowed-tools: Read, Grep, Glob, Write, Bash(git log:*), Bash(git diff:*), Bash(git status:*), Bash(git remote:*), Bash(ls:*), Bash(ps:*)
 ---
 
 # WHAT-IF
 
-Unroll the near future of this project into N branches, so the developer sees the failures
-before the users do.
+Before an agent (or you) gets production access, answer four questions about **this** project:
 
-You are doing for them what an experienced engineer does automatically: mentally simulating
-the plan against future conditions.
+1. **Delete** — what data could be destroyed, and by whom?
+2. **Expose** — who could read or change data that is not theirs?
+3. **Spend** — what could run up a bill, or move money wrongly?
+4. **Recover** — when one of those happens, what can actually be restored, and how fast?
 
-**This skill reads and reports. It never edits the project's code.** Every branch ends in an
-action the user can choose to take — never in an edit you make on your own initiative. The one
-file you may write is `.what-if.md`, this skill's own log at the repo root. Nothing else.
+The fourth is the one people skip and the one that decides whether a mistake is an evening or the
+end of the project. **Always answer it, even when the first three come back clean.**
 
-**Default N is 3**, and N is capped by the lens table below: **at most 10**. N is the number of
-*distinct lenses*, not the number of paragraphs. If the user asks for more than 10, give 10 and
-say why.
+**This skill reads and reports. It never edits the project's code.** The one file you may write
+is `.what-if.md`, this skill's own log at the repo root.
 
-## The one rule that decides whether this is useful
+## The rule that decides whether this is useful
 
-Every branch must be anchored to something you verified **in this run**: a file and line you
-re-read, a dependency and its version, a numbered plan item, a commit. **A branch you cannot
-anchor gets deleted, not reworded.** Generic futures ("the database might not scale") fit any
-project, so they inform about none.
+**Report only what you traced end to end in this run.** A finding is a mechanism you followed
+through the lines you read — not a pattern that resembles a known bug. There is no target count:
+three confirmed findings beat eight plausible ones, and "nothing serious here" is a legitimate
+result. Padding is the failure mode of this skill: a list with one invented item teaches the
+reader to distrust the true ones.
 
 ## Procedure
 
-### 1. Collect anchors
+### 1. Read before you imagine
 
-Read before you imagine. State the scope in one sentence first — "the checkout flow", "plan
-items 1-6", "this week's diff" — and stay inside it.
+State the scope in one sentence — "the repo as it would be when the agent gets prod access". Then
+read, in this order:
 
-**An anchor is anything you can point at and re-check later:** `file.ts:88`, a dependency and
-its version, a numbered plan item, a commit sha, or a running process. Code is the sharpest
-kind, but a plan with no code yet still anchors fine — that is the cheapest moment to run this.
+- agent instructions (`CLAUDE.md`, `AGENTS.md`, `.cursorrules`) and every credential the agent is
+  handed (`.env*`, config) — **what the agent is told it can do vs. what its credentials allow**;
+- database: migrations, roles and grants, policies (RLS), views, functions, triggers, cascades;
+- every place money or a paid API is called: routes, webhooks, cron jobs, queues, retries;
+- backups and recovery: backup scripts and workflows, where dumps land, retention, restore notes,
+  `git remote -v`;
+- `git log --oneline -15` and the diff — recent change is where faults cluster.
 
-**Budget: about 8 files or 1500 lines.** Prefer the diff and the files named in the
-conversation. Stop once you have 5-6 anchors; more input does not buy more foresight.
+Budget: about 12 files. Stop when the four questions have evidence; more input does not buy more
+foresight.
 
-**Check whether the thing is already running** (`ps`, a dev server, a cron job, a deploy). A
-scanner that is live right now and a repo sitting idle need different advice, and a fix that
-requires a restart may be impossible after a certain moment. Say which case you are in.
+**If `.what-if.md` exists, read it first.** Skip what the user already chose to ignore — but
+re-check the condition the dismissal rested on, and raise it again (saying what changed) if that
+condition has moved.
 
-**If `.what-if.md` exists in the repo root, read it first.** Skip branches the user already
-chose to ignore — repeating last week's dismissed findings is how this skill gets uninstalled.
+### 2. Generate candidates systematically
 
-But **re-check what those decisions rested on.** A dismissal is only as good as the condition
-under it: "the table is small, pagination can wait" is correct at 30 rows and wrong at 30,000.
-For each ignored branch, look at the one fact that justified ignoring it, and if that fact has
-moved, raise the branch again and say what changed. Nothing you prune disappears; it only stops
-being your problem while its condition holds.
+For each thing you read (a grant, a policy, a route, a script), apply the deviation operators
+instead of free-associating:
 
-Depending on what exists:
+**NONE** (missing, empty) · **MORE** (too many, too fast, repeated) · **AS WELL AS** (duplicate,
+extra, unintended) · **PART OF** (half done) · **REVERSE** (undo, out of order) · **OTHER THAN**
+(wrong user, wrong id, wrong environment) · **EARLY / LATE** (race, retry, after teardown)
 
-- the plan, spec, or TODO under discussion
-- `git log --oneline -15` and the diff — what changed recently is where faults cluster
-- the files named in the conversation, and what they import
-- dependency manifest: versions, anything pre-1.0, anything unmaintained
-- error paths: the `catch` blocks, external calls, and parses inside your scope
-- what the user said they intend to add next
+Walk error paths and retries first; hunt **absence** as hard as presence (no backup off the
+machine, no auth check, no limit, no remote). Most cells are empty — that is expected.
 
-Write down concrete facts with addresses: *"no pagination in `feed.tsx:40`"*, *"`catch {}`
-empty at `sync.ts:88`"*, *"plan item 4 adds payments"*.
+### 3. Trace every candidate through its guard — or drop it
 
-**Fewer than three anchors is not a refusal.** Generate branches for the anchors you do have,
-then state plainly what you read and name the two or three files (or the plan) that would
-sharpen the next run. Never come back empty-handed with only a request for more input.
+This step is where wrong findings come from, so it is not optional.
 
-### 2. Fix what stays constant
+- **Read the guard before claiming it fails.** If the code has a check in the way — an env or
+  host check, `set -e`, `server-only`, RLS on a table used inside a policy's subquery,
+  `security_invoker`, a dedupe table, a role that lacks a grant — you must either show the line
+  where the guard does **not** cover your case, or drop the candidate. "Someone could change the
+  config / disable the check" is not a finding unless the repo does it.
+- **Credentials: follow the grant chain.** What a role can do = its own grants + every role
+  granted to it, in every migration, in order. Docs and comments that say "read-only" are claims
+  to check, not evidence.
+- **A presence claim needs a verbatim excerpt** (1–3 lines copied from the file just read). A line
+  number is optional; never invent one.
+- **An absence claim needs the search you ran** and its literal result.
+- **Never compare two files you have not both read in this run.**
 
-Name the predetermined elements — facts true in *every* branch: the chosen stack, current
-architecture, committed dependencies, the deadline, existing tech debt.
+Then label each survivor:
 
-**Print them as one line above the branches:**
+- **Confirmed** — every step of the mechanism is in lines you quoted.
+- **Check** — the mechanism holds only if one fact you cannot see is true (dashboard setting,
+  bucket policy, real env value). Name that fact. A **Check** is never placed in *Fix now*.
 
-> **Constant in every branch:** Next.js 15, Supabase free tier, solo developer, ship by the 14th.
+### 4. Order by what cannot be undone
 
-Then use that line in step 4: a branch that only varies something on it is scenery, not a
-branch, and gets deleted. Branches must differ in what is genuinely uncertain.
+Lost data → leaked data → money moved or spent → time burned. Worst first. **No probabilities** —
+neither percentages nor "likely". If a **Confirmed** finding destroys or leaks data and there is no
+working recovery for it, it goes first regardless of anything else.
 
-### 3. Generate one branch per lens
+### 5. Write each finding
 
-Assign each branch a **different lens** before generating it. Never produce N branches from
-one pass — they collapse into paraphrases of the same modal future.
-
-| Lens | Hunt for |
-|---|---|
-| **Error paths** | what the code does when a call fails, times out, or returns a shape it did not expect |
-| **Omissions** | what is absent: no rollback, no migration, no auth check, no backup, no rate limit |
-| **Volume** | 100x the rows, files, users, or events |
-| **Human behavior** | double-click, back button, closed tab, pasted emoji, wrong file, refresh mid-write |
-| **External** | dependency breaks, changes its API, gets abandoned, rate-limits, raises prices |
-| **Money** | quota exhausted, bill spikes, free tier ends, tokens burn faster than expected |
-| **Time** | you return in 3 months; someone else reads this; today's shortcut taxes every later feature |
-| **Concurrency** | two users, two tabs, two workers doing it at the same moment |
-| **Access** | someone sees data that is not theirs |
-| **Drift** | where the README, the comments or the config promise something the code no longer does |
-
-Within a lens, apply deviation operators to each anchor rather than free-associating:
-
-**NONE** (missing, empty, null) · **MORE** (too many, too big, too fast) · **LESS** (partial,
-truncated) · **AS WELL AS** (duplicate, extra, unintended) · **PART OF** (half committed) ·
-**REVERSE** (undo, rollback, out of order) · **OTHER THAN** (wrong type, wrong id, wrong user)
-· **EARLY / LATE** (race, timeout, arrives after teardown)
-
-Work this as a matrix — anchors down, operators across — and draft candidates before writing
-anything final. Most cells are empty or absurd; that is expected. Keep the one strongest
-surviving candidate per lens.
-
-Two priorities, in this order: **walk the error paths first** (most catastrophic production
-failures come from mishandling errors the software already signalled), then **hunt absence as
-hard as presence** (missing elements outnumber flawed present ones about two to one).
-
-### 4. Cull
-
-A branch survives only if all four hold:
-
-0. **Verified in this run.** The proof is the excerpt, not the coordinate.
-   - **A presence claim needs a verbatim excerpt** — one to three lines copied from the file
-     you just read. The excerpt is what the reader checks; it is mandatory. A line number is
-     an optional convenience beside it, and if you are not certain of it, give the filename
-     and the excerpt alone. Never invent precision: a wrong number in an otherwise true branch
-     is what makes readers stop trusting the true parts.
-   - **An absence claim needs the search you ran.** "There is no rate limiting" means you ran
-     a search and it came back empty — not that you did not happen to notice any.
-   - **Quote command output literally.** Print what the command actually returned, never a
-     reconstruction. Do not append a plausible extra hit. And never report that a command
-     returned nothing unless you saw it return nothing — `ps aux | grep foo` always matches
-     its own grep process, so "returned nothing" there is false by construction.
-   - **Never compare two files you have not both read this turn.** "`checkout.ts` has the same
-     unguarded shape" requires opening `checkout.ts` now. A filename that sounds related, or a
-     TODO about something else, is not evidence.
-1. **Anchored** — you can point at the file, dependency, plan item, or commit.
-2. **Mechanical** — the causal chain is specific and at most 3-4 steps. "Might get slow" is
-   not a mechanism. "Each row triggers a query, so 500 rows is 500 round trips" is.
-3. **Proportionate** — plausible for *this* project at *this* stage. A 100k-user branch for a
-   personal script is noise.
-
-Delete what fails. **If fewer than N survive, say so in exactly this shape:**
-
-> **Requested 5, found 2.** The rest would be padding.
-
-Two numbers, fixed roles: the first is what the user asked for, the second is what survived.
-Write them in that order and never swap them — a sentence about honesty that carries the wrong
-number undoes itself. Never invent a branch to hit the requested count; a padded list teaches
-the user to distrust the whole list.
-
-### 5. Order honestly
-
-**Order branches by irreversibility of the consequence:** lost data → money moved → time
-burned → annoyance. Worst first.
-
-**Attach no probability at all** — neither percentages nor words like *likely* or *long-shot*.
-Guessed likelihoods do not track real incident rates. If likelihood matters for a branch, it
-belongs in **Early signal** as something observable, not as a guess.
-
-You are biased toward predicting that an asked-about plan succeeds. Correct for it in the
-**search**, not in the verdict: if every branch came out benign, you probably picked scenery
-lenses — re-run step 3 once with two lenses you did not use. **If the second pass is also
-benign, say so.** "I looked for X, Y and Z; they are guarded here" is a legitimate result, and
-manufacturing doom for a 200-line weekend project is not.
-
-### 6. Write each branch as an accomplished fact
-
-Past tense. It already happened. This framing — not hedged "this could fail if" language —
-is what makes the causes concrete and deflates overconfidence.
-
-**Do not invent a date or a duration in the headline.** "Three weeks in" is an unearned claim
-about both timing and likelihood, sitting in the position the reader trusts most. Name the
-failure instead. Time belongs in a headline only when it comes from a real anchor — a trial
-that ends on the 14th, a certificate expiring, a rate limit that resets hourly.
+Past-tense headline — it already happened — naming the failure, not a date.
 
 ```
-### The same order was charged twice
+### The nightly cleanup deleted every unpaid order — including the ones being paid right now
 
-**Anchor** `checkout.ts:88` — `<button onClick={submit}>` with no disabled state
-**Lens / Deviation** Human behavior / AS WELL AS
-**How** Two requests left before the first response returned, so two rows were
-       written and the card was charged twice.
-**Cost** Customer's money, a manual refund, and a support conversation.
-**Early signal** Orders table shows pairs with near-identical timestamps —
-       but nothing watches that table today, so nobody would see it.
-**Window** Cheap while the button is one component. After the first real
-       charge it also costs a refund and a support conversation.
-**Action** Disable the button until the response lands, and send an
-       idempotency key with the request.
+**Status**        Confirmed
+**Axis**          Delete
+**Evidence**      jobs/cleanup.ts — `await db.query("delete from orders where status <> 'paid'")`
+                  vercel.json — `{ "path": "/api/jobs/cleanup", "schedule": "0 * * * *" }`
+**How**           Checkout writes the order as `pending` before the card is charged; the hourly job
+                  deleted it in between, and the webhook then found no order to mark paid.
+**In plain words** A cleaning robot throws away carts while customers are still at the till.
+**Check it yourself** Open vercel.json: if the cleanup runs more often than once a day, this is live.
+**Fix**           Delete only orders older than a day; never delete rows a webhook may still update.
 ```
 
-Three of these fields carry weight the others do not:
+- **In plain words** — one sentence a person who never opened a terminal understands.
+- **Check it yourself** — one step that confirms the risk without reading code: open a file and
+  look at one value, run one `curl`, look at one dashboard page. If no such step exists, say so.
 
-**Lens / Deviation** is the only way the reader can check that the branch came from systematic
-enumeration rather than from a plausible story.
+### 6. Recovery — always a separate section
 
-**Early signal must name a watcher, not just an observable.** "Errors appear in the log" is
-worthless if nobody reads that log. Say who or what would actually notice — a person watching,
-an alert, a failing test — and **if the answer is nobody, say that**, because an unwatched
-signal is itself a finding worth more than the branch it belongs to.
+After the findings, answer the fourth question for the data that matters:
 
-**Window** is when the fix is still cheap, and it is often the most actionable line in the
-whole report. Some fixes stay cheap indefinitely; others have a hard edge — a launch, a
-migration, a deploy, a process already running that a restart would disturb. Name the edge if
-one exists, and say plainly when a window is closing today.
+```
+## If it happens: what you can get back
+Database    — <what backups exist, where they land, how old, whether they contain data, retention>
+Code        — <git remote? last push? or "only on this machine">
+Money/keys  — <can a key be revoked/rotated fast? is there a spend cap or alert?>
+Weakest link — <the one gap that turns a mistake into a permanent loss>
+Check it yourself — <one step: e.g. "open the backups folder: is there more than one file, on another machine?">
+```
+
+Trace recovery the same way as findings: a backup that is `--schema-only`, deleted by its own
+retention, or stored on the same disk as the database is **not** a backup — say so with the excerpt.
+A recovery path that is configured and documented as tested counts as working; say so plainly.
 
 ### 7. Close the output
 
-End every run with three buckets and one honest line:
+- **Fix now** — at most 2, only **Confirmed**.
+- **Check next** — the **Check** items, each with the one fact to look up.
+- **Fine as is** — what you looked at and found guarded, each with the **condition** that keeps it
+  fine ("fine while the agent only has `agent_ro`"). This is part of the answer, not filler: it
+  tells the reader which alarms not to raise.
 
-- **Fix now** — at most 1-2. More than that and nothing gets fixed.
-- **Write down, revisit** — real, not urgent.
-- **Consciously ignore** — each with the **condition** that makes it fine, not just a reason:
-  "fine *while* this table stays under a few hundred rows", "fine *while* you are the only
-  user". A condition can be re-checked on the next run; an opinion cannot. This bucket is not
-  filler — it teaches that not every risk deserves work, and it keeps the output from reading
-  as doom.
+Then always:
 
-Then, always:
+> **Not shown:** one pass over the files listed above. A different review method finds a largely
+> different set of problems — treat this as a sample, not an inventory.
 
-> **Not shown:** this was one pass with N lenses. When two different review methods are run
-> over the same system, only about a third of their findings overlap — a different set of
-> lenses finds a largely different set of problems. Treat this as a sample, not an inventory.
+**Hand over the next move:** for each *Fix now* item give a line the user can say back:
 
-That line is required. When a list of failure causes is displayed, people treat it as the
-complete set and stop looking — and expertise does not protect against this. Saying it out
-loud is the only correction.
+> Say `fix the reset script` and I'll make the change **and add a small test that fails if it comes back**.
 
-**Then hand over the next move.** A report that ends at reading is a report nobody acts on, so
-give each *fix now* item a line the user can say back verbatim:
-
-> Say `fix the double-submit in checkout.ts:88` and I'll do it.
-
-**Finally, append the run to `.what-if.md`** in the repo root (one dated section: the three
-buckets, one line each). That file is what stops the next run from repeating what this user
-already decided to ignore. Mention it once, in a single line, and do not paste its contents.
+**Finally, append the run to `.what-if.md`** (one dated section: the three buckets, one line each).
+Mention it in one line; do not paste it.
 
 ## Anti-sycophancy
 
-The user's hopes contaminate the estimate. A stated belief pulls the model's judgment toward
-it, and a wrong user suggestion measurably degrades accuracy.
+Restate the plan in one neutral sentence without the user's confidence language ("it's read-only",
+"RLS is on everywhere", "spend is capped") and verify those claims rather than inheriting them —
+they are exactly where the hidden findings live. Never soften a finding because the user sounds
+attached to the plan.
 
-- Before writing any branch, restate the plan in one neutral sentence stripped of the user's
-  confidence language, and generate against that restatement.
-- Never soften a branch because the user sounds attached to the plan. Softening it is the one
-  thing that makes the whole exercise worthless.
+## What good and bad findings look like
 
-## Horizon
+**Bad — pattern-matched, guard ignored:**
+> `seed.js` truncates every table, so the agent could wipe prod.
 
-Take the horizon from the task itself — the next sprint, the next release, or the next hour if
-that is when the thing runs. Forecast skill decays hard with distance, error roughly doubles
-across a forecast horizon, and long-range predictions are the least trustworthy output a
-language model produces. Anything beyond the task's own horizon is labelled possibility, not
-prediction.
+…when the script exits unless `NODE_ENV === "development"`. Either quote the case the guard misses,
+or put it under *Fine as is* with its condition.
 
-Also: more context does not buy more foresight. Gains from additional input are logarithmic —
-read what is relevant to the anchors and stop.
+**Bad — vivid but hollow.** Detail makes a scenario feel more likely while making it less likely:
+> Someone exports NODE_ENV=development on the prod box, then runs the seed, and…
 
-## What good and bad branches look like
-
-**Bad — unanchored, could be any project:**
-> What if the database can't handle the load? You should consider caching and indexes.
-
-**Bad — vivid but hollow.** Detail makes a scenario *feel* more likely while making it
-logically *less* likely, so a branch that reads like a short story is a warning sign:
-> It's Black Friday. Traffic is 50x. The CDN buckles, the queue backs up, Redis evicts
-> hot keys, and the on-call engineer is asleep...
-
-**Bad — padding to hit N:**
-> Branch 5: What if requirements change? Requirements often change.
-
-**Good — anchored, mechanical, ends in an action:**
-> ### Every dashboard load took 9 seconds
-> **Anchor** `dashboard/page.tsx:40` — `orders.map(o => await getUser(o.userId))`
-> **Lens / Deviation** Volume / MORE
-> **How** One query per row. At 300 orders that is 300 sequential round trips.
-> **Cost** The page feels broken; you rewrite the data layer under time pressure.
-> **Early signal** It already takes ~1s with your 30 test rows — visible to you, unmonitored in prod.
-> **Window** Cheap until other pages copy this query shape.
-> **Action** Fetch users once with `IN (...)`, or join in the query.
-
-**Good — an omission, which is the most common real risk:**
-> ### A bad migration erased the products table and there was no way back
-> **Anchor** `grep -r "rollback\|backup" supabase/migrations/` returns nothing; `0003` drops a column
-> **Lens / Deviation** Omissions / NONE
-> **How** The migration ran against production, the column was gone, and nothing captured
->       the prior state.
-> **Cost** Data loss measured in whatever was not in a backup.
-> **Early signal** None, and nothing watches for it — which is why it is worth fixing today.
-> **Window** Closes the moment you run this migration against production.
-> **Action** Take a snapshot before migrating; add the reverse statement to each migration.
-
-Note what the second Anchor carries: an absence claim cites **the search that came back empty**,
-not a bare directory name. "There is no X here" is only checkable if you show how you looked.
+**Good — claim in the docs checked against the code:**
+> ### The "test mode" Stripe key charged real cards
+> **Status** Confirmed · **Axis** Spend
+> **Evidence** README — "payments run in test mode" · .env.production — `STRIPE_SECRET_KEY=sk_live_…` · lib/stripe.ts — `new Stripe(process.env.STRIPE_SECRET_KEY!)`
+> **In plain words** The note says it's play money; the key in use is the real one.
+> **Check it yourself** Open .env.production: a key starting with `sk_live_` charges real cards.
 
 ## If the user asks how accurate this is
 
-Say plainly: this is not prediction. It widens coverage of concrete failure causes and nudges
-toward reversible designs. Scenario methods measurably change what people decide; they do not
-improve forecast accuracy.
+Say plainly: this is not prediction. It checks the specific ways this repo can lose, leak or spend,
+and what can be recovered. It does not replace a secret scanner or a penetration test.
