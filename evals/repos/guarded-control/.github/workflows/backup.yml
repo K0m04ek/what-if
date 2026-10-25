@@ -1,0 +1,10 @@
+name: nightly-backup
+on: { schedule: [{ cron: "0 3 * * *" }] }
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    steps:
+      - run: pg_dump --format=custom "${{ secrets.PROD_BACKUP_URL }}" > dump.pgc
+      - run: aws s3 cp dump.pgc "s3://bookclub-backups/$(date +%F).pgc" --sse aws:kms
+        env: { AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}", AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}" }
+      - run: pg_restore --list dump.pgc | grep -q "TABLE DATA public members"

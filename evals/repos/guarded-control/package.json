@@ -1,0 +1,3 @@
+{ "name": "bookclub", "private": true,
+  "scripts": { "dev": "next dev", "db:reset:local": "node scripts/reset-db.mjs" },
+  "dependencies": { "next": "14.2.5", "pg": "8.11.3", "openai": "4.56.0", "@supabase/ssr": "0.4.0", "server-only": "0.0.1", "@upstash/ratelimit": "2.0.1", "@upstash/redis": "1.34.0" } }
