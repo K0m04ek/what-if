@@ -15,6 +15,8 @@ Every finding is traced through the lines it re-read, says in one sentence what 
 person who never opened a terminal, and gives one step to confirm it yourself. It reports; it
 never edits your code.
 
+**0.2.1:** The skill can write only its own `.what-if.md` log; the unused `ps` permission was removed.
+
 ---
 
 ## What it looks like

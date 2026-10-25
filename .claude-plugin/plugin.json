@@ -1,7 +1,7 @@
 {
   "name": "what-if",
   "description": "Before giving an AI agent production access: what it could delete, expose or spend, and what you could recover. Every finding anchored to your real code.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": {
     "name": "K0m04ek"
   },

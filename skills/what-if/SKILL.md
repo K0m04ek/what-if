@@ -1,7 +1,7 @@
 ---
 name: what-if
 description: Use before giving an AI agent (or yourself) production access, before a deploy, or when adding a database, a paid API, payments or user data - "is it safe to give the agent prod", "what could go wrong", "is it safe to launch", "run a premortem", "review this before I ship". Answers what could get DELETED, EXPOSED or SPENT - and what you could RECOVER - each finding traced to code it re-read, each ending in one step a beginner can take. Not for narrow single-line questions like "what if I use useMemo here".
-allowed-tools: Read, Grep, Glob, Write, Bash(git log:*), Bash(git diff:*), Bash(git status:*), Bash(git remote:*), Bash(ls:*), Bash(ps:*)
+allowed-tools: Read, Grep, Glob, Edit(./.what-if.md), Bash(git log:*), Bash(git diff:*), Bash(git status:*), Bash(git remote:*), Bash(ls:*)
 ---
 
 # WHAT-IF
