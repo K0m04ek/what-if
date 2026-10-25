@@ -1,5 +1,6 @@
 {
   "name": "what-if",
+  "description": "Before giving an AI agent production access: what it could delete, expose or spend, and what you could recover.",
   "owner": {
     "name": "K0m04ek",
     "url": "https://github.com/K0m04ek"
