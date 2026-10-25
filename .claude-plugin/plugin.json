@@ -1,11 +1,19 @@
 {
   "name": "what-if",
-  "description": "Unrolls N branches of your project's near future, each anchored to real code, each ending in one concrete fix.",
-  "version": "0.1.0",
+  "description": "Before giving an AI agent production access: what it could delete, expose or spend, and what you could recover. Every finding anchored to your real code.",
+  "version": "0.2.0",
   "author": {
     "name": "K0m04ek"
   },
   "homepage": "https://github.com/K0m04ek/what-if",
   "license": "MIT",
-  "keywords": ["what-if", "risk", "premortem", "planning", "review", "vibecoding"]
+  "keywords": [
+    "what-if",
+    "premortem",
+    "production-access",
+    "agent-safety",
+    "risk",
+    "review",
+    "vibecoding"
+  ]
 }
