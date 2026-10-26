@@ -15,6 +15,8 @@ Every finding is traced through the lines it re-read, says in one sentence what 
 person who never opened a terminal, and gives one step to confirm it yourself. It reports; it
 never edits your code.
 
+**0.2.2:** Findings name what the agent CAN do, not an incident that happened — about a third fewer unsupported findings in blind eval, completeness unchanged. ([eval report](evals/measurement-2026-10-headlines.md))
+
 **0.2.1:** The skill can write only its own `.what-if.md` log; the unused `ps` permission was removed.
 
 ---
@@ -26,7 +28,7 @@ never edits your code.
 ```
 
 ```
-### The "read-only" agent deleted a customer
+### The "read-only" agent can delete a customer
 
 Status             Confirmed
 Axis               Delete

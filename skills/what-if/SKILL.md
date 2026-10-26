@@ -92,17 +92,19 @@ working recovery for it, it goes first regardless of anything else.
 
 ### 5. Write each finding
 
-Past-tense headline — it already happened — naming the failure, not a date.
+Headline names the failure as something this repo allows — "can delete", "can charge", "would be lost" —
+never as an incident. Say a thing has happened only when a quoted line shows it did. **Confirmed**
+certifies the mechanism, not that it has already run.
 
 ```
-### The nightly cleanup deleted every unpaid order — including the ones being paid right now
+### The nightly cleanup can delete every unpaid order — including the ones being paid right now
 
 **Status**        Confirmed
 **Axis**          Delete
 **Evidence**      jobs/cleanup.ts — `await db.query("delete from orders where status <> 'paid'")`
                   vercel.json — `{ "path": "/api/jobs/cleanup", "schedule": "0 * * * *" }`
 **How**           Checkout writes the order as `pending` before the card is charged; the hourly job
-                  deleted it in between, and the webhook then found no order to mark paid.
+                  can delete it in between, and the webhook then finds no order to mark paid.
 **In plain words** A cleaning robot throws away carts while customers are still at the till.
 **Check it yourself** Open vercel.json: if the cleanup runs more often than once a day, this is live.
 **Fix**           Delete only orders older than a day; never delete rows a webhook may still update.
@@ -168,7 +170,7 @@ or put it under *Fine as is* with its condition.
 > Someone exports NODE_ENV=development on the prod box, then runs the seed, and…
 
 **Good — claim in the docs checked against the code:**
-> ### The "test mode" Stripe key charged real cards
+> ### The "test mode" Stripe key can charge real cards
 > **Status** Confirmed · **Axis** Spend
 > **Evidence** README — "payments run in test mode" · .env.production — `STRIPE_SECRET_KEY=sk_live_…` · lib/stripe.ts — `new Stripe(process.env.STRIPE_SECRET_KEY!)`
 > **In plain words** The note says it's play money; the key in use is the real one.
